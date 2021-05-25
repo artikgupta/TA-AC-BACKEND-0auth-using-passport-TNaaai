@@ -12,68 +12,92 @@ passport.use(new GithubStrategy({
     console.log(profile)
 
     var userInfo ={
+      email :profile._json.email,
+      github:{
         name : profile.displayName,
-        email :profile._json.email,
         username: profile.username,
         photo: profile._json.avatar_url,
+      }
     }
 
     User.findOne({email:profile._json.email}, (err, user)=>{
         if(err) return done(err)
         if(!user){
             console.log(userInfo)
-            User.create(user, (err, addedUser)=>{
+            userInfo.providers=["Github"]
+            User.create(userInfo, (err, addedUser)=>{
                 if(err) return done(err)
                 return done(null, addedUser);
           });
         } else {
+          if(user.providers.includes("Github") || user.github){
+              return done({code: 503, message:"Google account already linked"})
+            }
+            else{
+              user.google={
+                image: profile._json.picture,
+                name : profile.displayName,
+              }
+              user.providers.push('Github');
+              User.findByIdAndUpdate(user.id, user, (err,updatedUser)=>{
+                return done(null,updatedUser)
+              })
+            }
+          
           return done(null, user);
+        
         }
       });
     }
   )
 );
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(function (id, done) {
-  User.findById(id, function (err, user) {
-    done(err, user);
-  });
-});
 
 
-var passport = require("passport");
+
 
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
-var User = require("../models/User")
 
 passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
+    clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret :process.env.GOOGLE_CLIENT_SECRET,
     callbackURL:"/auth/google/callback"
 },(accessToken,refreshToken,profile,done)=>{
     console.log(profile)
 
-    var user ={
+    var userDetails ={
+
+      email :profile._json.email,
+      google:{
+        image: profile._json.picture,
         name : profile.displayName,
-        email :profile._json.email,
-        username: profile.username,
-        photo: profile._json.avatar_url,
+      }
     }
 
-    User.findOne({email:profile._json.email}, (err, user)=>{
+    User.findOne({ email: profile._json.email }, (err, user)=>{
         if(err) return done(err)
         if(!user){
-            console.log(user)
-            User.create(user, (err, addedUser)=>{
+          userDetails.providers=["Google"]
+            User.create(userDetails, (err, addedUser)=>{
                 if(err) return done(err)
                 return done(null, addedUser);
           });
         } else {
+          if(user.providers.includes("Google") || user.google){
+              return done({code: 503, message:"Google account already linked"})
+            }
+            else{
+              user.google={
+                image: profile._json.picture,
+                name : profile.displayName,
+              }
+              user.providers.push('Google');
+              User.findByIdAndUpdate(user.id, user, (err,updatedUser)=>{
+                return done(null,updatedUser)
+              })
+            }
+          
           return done(null, user);
         }
       });

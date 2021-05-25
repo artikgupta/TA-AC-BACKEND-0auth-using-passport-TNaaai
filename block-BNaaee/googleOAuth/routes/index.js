@@ -23,10 +23,10 @@ router.get("/auth/github/callback", passport.authenticate("github", {failureRedi
 })
 
 
-router.get(
-  '/auth/google',
-  passport.authenticate('google', { scope: ['email', 'profile'] })
+router.get('/auth/google',
+  passport.authenticate('google', {scope: ['openid', 'email', 'profile']})
 );
+
 router.get(
   '/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/failure' }),
