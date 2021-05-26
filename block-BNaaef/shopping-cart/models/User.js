@@ -1,26 +1,20 @@
-var mongoose = require('mongoose');
+var mongoose = require("mongoose");
 
-var Schema = mongoose.Schema;
+var Schema = mongoose.Schema
 
-var bcrypt = require('bcrypt');
-
-var userSchema = new Schema(
-  {
-    name: { type: String, required: true },
-
-    email: { type: String, required: true, unique: true },
-
-    password: { type: String, required: true, minlength: 5 },
-
-    isAdmin:{type:Boolean, default:false},
-
-    cart: [{type: Schema.Types.ObjectId, ref: "Product"}],
-
-    block :[{type:Schema.Types.ObjectId, ref:"User"}]
-    
-  },
-  { timestamps: true }
-);
+var userSchema = new Schema({
+    email: { type: String, required: true, unique: true},
+    github: {
+      name: String,
+      username: String,
+      image: String
+    },
+    google: {
+      name: String,
+      image: String
+    },
+    providers: [String] 
+  })
 
 userSchema.pre('save', function (next) {
     const adminEmail = ["arti@gmail.com"];
